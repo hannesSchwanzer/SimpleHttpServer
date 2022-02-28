@@ -15,9 +15,11 @@ enum requestMethod{
 
 typedef struct {
     enum requestMethod method;
-    const char version[8];
-    const char path[1024];
+    char* version;
+    char* path;
 } httpRequest;
 
+httpRequest* create_httpRequest();
+void free_httpRequest(httpRequest* req);
 
 #endif

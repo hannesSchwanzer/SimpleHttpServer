@@ -1,4 +1,7 @@
 #include "common.h"
+#include "httpRequest.h"
+#include "httpParser.h"
+#include "settings.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -12,15 +15,86 @@
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <stdbool.h>
+
+#define BUFF_SIZE 4096
+char buffRequest[BUFF_SIZE];
+char buffResponse[BUFF_SIZE];
+
+int readLine(int fd, char *buff, int buff_size);
+
+
+bool strempty(char* str)
+{
+    return *str=='\0';
+}
+
+void readRequest(httpRequest* req, int connfd)
+{
+    memset(buffRequest, 0, BUFF_SIZE);
+    if (read(connfd, buffRequest, BUFF_SIZE-1) == -1)
+        err_n_die("reading request error.");
+
+    parseRequest(req, buffRequest);
+    printf("Method: %d\nPath: %s\nVersion: %s\n", req->method, req->path, req->version);
+}
+
+void handleRequest(httpRequest* req, int connfd)
+{
+    char filepath[1024];
+    switch (req->method-1)
+    {
+    case GET:
+        memset(filepath, 0, 1024);
+        memset(buffResponse, 0, BUFF_SIZE);
+        if (req->path==NULL)
+        {
+            snprintf((char *) buffResponse, sizeof(buffResponse), "HTTP/1.0 400 Bad Request \r\n\r\n");
+            write(connfd, (char*) buffResponse, strlen((char*) buffResponse));
+            return;
+        } 
+        else if (strempty(req->path))
+        {
+            sprintf(filepath, "%s/%s", FOLDER, DEFAULT_FILE);
+        } 
+        else
+        {
+            sprintf(filepath, "%s/%s", FOLDER, req->path);
+        }
+
+        int file = open(filepath, O_RDONLY);
+        if (file == -1) {
+            snprintf((char *) buffResponse, sizeof(buffResponse), "HTTP/1.0 404 Not Found \r\n\r\n");
+            write(connfd, (char*) buffResponse, strlen((char*) buffResponse));
+        } else {
+            snprintf((char *) buffResponse, sizeof(buffResponse), "HTTP/1.0 200 OK \r\n\r\n");
+            write(connfd, (char*) buffResponse, strlen((char*) buffResponse));
+            int fsize = lseek(file, 0, SEEK_END);
+            lseek(file, 0, SEEK_SET);
+            sendfile(connfd, file, 0, fsize);
+            close(file);
+        }
+        
+
+
+
+
+        break;
+    
+    default:
+        snprintf((char *) buffResponse, sizeof(buffResponse), "HTTP/1.0 501 Not Implemented \r\n\r\n");
+        write(connfd, (char*) buffResponse, strlen((char*) buffResponse));
+        break;
+    }
+}
 
 int main(int argc, char **argv)
 {
     int listenfd, connfd, n;
     struct sockaddr_in servaddr;
-    uint8_t buff[MAXLINE+1];
-    uint8_t recvline[MAXLINE+1];
     uint16_t SERVER_PORT;
-
+    (void) n;
 
     if (argc<2) {
         printf("USAGE: %s (Portnumber)\n", *argv);
@@ -47,35 +121,20 @@ int main(int argc, char **argv)
         (void) addr;
         (void) addr_len;
 
-        printf("waiting for a connection on port %d\n", SERVER_PORT);
+        printf("Waiting for a connection on port %d\n", SERVER_PORT);
         fflush(stdout);
         connfd = accept(listenfd, (struct sockaddr*) NULL, NULL);
 
-        memset(recvline, 0, MAXLINE);
+        httpRequest* request = create_httpRequest();
 
-        while ( (n = read(connfd, recvline, MAXLINE-1) ) > 0) 
-        {
-            fprintf(stdout, "\n%s", recvline);
-
-            if (recvline[n-1] == '\n') break;
-            memset(recvline, 0, MAXLINE);
-        }
-        if (n<0) err_n_die("read error");
-
-        int file = open("index.html", S_IRUSR);
-        if (file == -1) err_n_die("file open error.");
+        readRequest(request, connfd);
         
-        int fsize = lseek(file, 0, SEEK_END);
-        lseek(file, 0, SEEK_SET);
+        handleRequest(request, connfd);
+        
 
+        free_httpRequest(request);
 
-
-        snprintf((char *) buff, sizeof(buff), "HTTP/1.0 200 OK \r\n\r\n");
-
-        write(connfd, (char*) buff, strlen((char*) buff));
-
-        sendfile(connfd, file, 0, fsize);
-
+        
         close(connfd);
 
     }

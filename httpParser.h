@@ -4,7 +4,7 @@
 #include "httpRequest.h"
 
 
-void parseRequest(httpRequest* req, int __connfd, int options);
+void parseRequest(httpRequest* req, char* requestString);
 
 
 #endif
