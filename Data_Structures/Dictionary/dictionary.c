@@ -75,7 +75,7 @@ char* dictionary_getValue(Dictionary* dict, char* key)
     if (dict->store[stringhash] == NULL) return NULL;
     
     LinkedList* ll = dict->store[stringhash];
-    DictNode* node = linkedListGetByKey(ll, key);
+    DictNode* node = linkedListGetByComparison(ll, key, dictNodeKeyEquals);;
     if (node == NULL) return NULL;
     return node->value;
 }
@@ -91,24 +91,4 @@ long int stringHash(int hashsize, char* string)
         pow = (pow * p) % hashsize;
     }
     return hash_value;
-}
-
-int main(void)
-{
-    Dictionary dict;
-    dictionary_init(&dict, 101);
-    char* c = "Saus";
-    dictionary_add(&dict, c, "sausli");
-    dictionary_add(&dict, "moin", "saussadsli");
-    dictionary_add(&dict, "ok", "moinesnens");
-    dictionary_add(&dict, "sadasadsdsa", "sausli");
-    
-    printf("%s\n", dictionary_getValue(&dict, c));
-    printf("%s\n", dictionary_getValue(&dict, "moin"));
-    printf("%s\n", dictionary_getValue(&dict, "ok"));
-    printf("%s\n", dictionary_getValue(&dict, "sadasadsdsa"));
-    printf("%d\n", NULL==dictionary_getValue(&dict, "asfs"));
-
-
-    return 0;
 }
