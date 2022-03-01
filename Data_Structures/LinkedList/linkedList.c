@@ -66,16 +66,16 @@ void linkedListForEach(LinkedList* list, void (*f)(void*))
     linkedListForEach(list->next, f);
 }
 
-bool linkedListContains(LinkedList* list, bool (*compare)(void*))
+bool linkedListContains(LinkedList* list, bool (*predicate)(void*))
 {
     if (list == NULL) return false;
-    return compare(list->object) || linkedListContains(list->next, compare);
+    return predicate(list->object) || linkedListContains(list->next, predicate);
 }
 
-void* linkedListGetByAttribut(LinkedList* list, bool (*compare)(void*))
+void* linkedListGetByAttribut(LinkedList* list, bool (*prediacte)(void*))
 {
     if (list == NULL) return NULL;
-    return compare(list->object) ? list->object : linkedListGetByAttribut(list->next, compare);
+    return prediacte(list->object) ? list->object : linkedListGetByAttribut(list->next, prediacte);
 }
 
 
@@ -90,3 +90,9 @@ void linkedListFreeObjects(LinkedList* list)
     linkedListForEach(list, freeObjects);
 }
 
+void* linkedListGetByComparison(LinkedList *list, void* that, bool (*equals)(void*, void*))
+{
+    if (list == NULL) return NULL;
+    if (equals(list->object,that)) return list->object;
+    return linkedListGetByComparison(list->next, that, equals);
+}
