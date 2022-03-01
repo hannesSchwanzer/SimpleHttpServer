@@ -89,3 +89,4 @@ void linkedListFreeObjects(LinkedList* list)
 {
     linkedListForEach(list, freeObjects);
 }
+

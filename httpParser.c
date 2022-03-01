@@ -45,11 +45,11 @@ char* parseRequestLine(httpRequest* req, char* requestString)
     req->version = malloc(sizeof(char)*(strlen(version)+1));
     strncpy(req->version, version, strlen(version));
 
-    if (strncmp(method, "GET", 3))
+    if (strncmp(method, "GET", 3) == 0)
     {
     req->method = GET;
     }
-    else if (strncmp(method, "POST", 4))
+    else if (strncmp(method, "POST", 4) == 0)
         req->method = POST;
     else
         req->method = 0;
