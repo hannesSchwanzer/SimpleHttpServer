@@ -92,3 +92,31 @@ long int stringHash(int hashsize, char* string)
     }
     return hash_value;
 }
+
+LinkedList* dictionary_getAllNodes(Dictionary* dict)
+{
+    LinkedList* ll = linkedListCreate();
+    for(int i=0; i<dict->hashsize; i++)
+    {
+        if (dict->store[i] == NULL) continue;
+        linkedListAppend(ll, dict->store[i]);
+
+    }
+    return ll;
+}
+
+void printNode(void* n)
+{
+    if (n == NULL) {
+        //printf("NULL\n");
+        return;
+    }
+    DictNode* node = n;
+    printf("%s: %s\n", node->key, node->value);
+}
+
+void dictionary_print(Dictionary* dict)
+{
+    LinkedList* ll = dictionary_getAllNodes(dict);
+    linkedListForEach(ll, printNode);
+}
