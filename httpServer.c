@@ -1,6 +1,6 @@
-#include "common.h"
-#include "httpRequest.h"
-#include "httpParser.h"
+#include "util/common.h"
+#include "httpFunctions/httpRequest.h"
+#include "httpFunctions/httpParser.h"
 #include "settings.h"
 #include <stdio.h>
 #include <string.h>
@@ -37,13 +37,14 @@ void readRequest(httpRequest* req, int connfd)
         err_n_die("reading request error.");
 
     parseRequest(req, buffRequest);
-    printf("Method: %d\nPath: %s\nVersion: %s\n", req->method, req->path, req->version);
+    printf("\n-----------------------------------\nRequest Header:\n\tMethod: %d\n\tPath: %s\n\tVersion: %s\n", req->method, req->path, req->version);
+    dictionary_print(req->headers);
 }
 
 void handleRequest(httpRequest* req, int connfd)
 {
     char filepath[1024];
-    switch (req->method-1)
+    switch (req->method)
     {
     case GET:
         memset(filepath, 0, 1024);
@@ -75,10 +76,6 @@ void handleRequest(httpRequest* req, int connfd)
             sendfile(connfd, file, 0, fsize);
             close(file);
         }
-        
-
-
-
 
         break;
     
@@ -121,7 +118,7 @@ int main(int argc, char **argv)
         (void) addr;
         (void) addr_len;
 
-        printf("Waiting for a connection on port %d\n", SERVER_PORT);
+        printf("\nWaiting for a connection on port %d\n", SERVER_PORT);
         fflush(stdout);
         connfd = accept(listenfd, (struct sockaddr*) NULL, NULL);
 

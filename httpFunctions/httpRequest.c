@@ -6,8 +6,11 @@ httpRequest* create_httpRequest()
 {
     httpRequest* request = malloc(sizeof(httpRequest));
 
+    Dictionary* dict = malloc(sizeof(Dictionary));
+    dictionary_init(dict, 101);
+
     *request = (httpRequest) {
-        0, NULL, NULL
+        0, NULL, NULL, dict
     };
 
     return request;

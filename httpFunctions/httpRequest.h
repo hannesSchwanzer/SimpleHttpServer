@@ -1,6 +1,8 @@
 #ifndef _HTTP_REQUEST_
 #define _HTTP_REQUEST_
 
+#include "../Data_Structures/Dictionary/dictionary.h"
+
 enum requestMethod{
     GET,
     POST,
@@ -13,10 +15,11 @@ enum requestMethod{
     PATCH
 };
 
-typedef struct {
+typedef struct httpRequest{
     enum requestMethod method;
     char* version;
     char* path;
+    Dictionary* headers;
 } httpRequest;
 
 httpRequest* create_httpRequest();
