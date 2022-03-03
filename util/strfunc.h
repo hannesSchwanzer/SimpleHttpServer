@@ -6,5 +6,7 @@ char* trimLeft(char* string);
 char* trimRight(char* string);
 char* trimBoth(char* string);
 void toLowerCase(char* string);
+char* StringFind(char* str1, char* str2);
+
 
 #endif
